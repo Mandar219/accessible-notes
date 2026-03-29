@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct NotesListView: View {
-    let sampleNotes: [Note] = [
+    @State private var notes: [Note] = [
         Note(
             id: UUID(),
             title: "Grocery List",
@@ -27,25 +27,30 @@ struct NotesListView: View {
         )
     ]
     
+    @State private var isShowingNewNoteSheet: Bool = false
+    
     var body: some View {
         NavigationStack {
-            List(sampleNotes) { note in
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(note.title)
-                        .font(.headline)
-                    
-                    Text(note.content)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-                .padding(.vertical, 4)
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel(note.title)
-                .accessibilityValue(note.isPinned ? "Pinned" : "Not Pinned")
-                .accessibilityHint("Open note to view details")
+            List(notes) { note in
+                NoteRowView(note: note)
             }
             .navigationTitle("Notes")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isShowingNewNoteSheet = true
+                    } label: {
+                        Label("New Note", systemImage: "plus")
+                    }
+                    .accessibilityLabel("Create a new note")
+                    .accessibilityHint("Opens the note editor")
+                }
+            }
+            .sheet(isPresented: $isShowingNewNoteSheet) {
+                NoteEditorView { newNote in
+                    notes.insert(newNote, at: 0)
+                }
+            }
         }
     }
 }
