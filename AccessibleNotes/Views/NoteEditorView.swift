@@ -8,13 +8,33 @@
 import SwiftUI
 
 struct NoteEditorView: View {
+    enum Mode {
+        case create
+        case edit
+    }
+    
     @Environment(\.dismiss) private var dismiss
     
     @State private var title: String = ""
     @State private var content: String = ""
     @State private var isPinned: Bool = false
     
-    let onSave: (Note) -> Void
+    let mode: Mode
+    let onSave: (String, String, Bool) -> Void
+    
+    init(
+        title: String,
+        content: String,
+        isPinned: Bool,
+        mode: Mode,
+        onSave: @escaping (String, String, Bool) -> Void
+    ) {
+        _title = State(initialValue: title)
+        _content = State(initialValue: content)
+        _isPinned = State(initialValue: isPinned)
+        self.mode = mode
+        self.onSave = onSave
+    }
     
     var body: some View {
         NavigationStack {
@@ -33,7 +53,7 @@ struct NoteEditorView: View {
                         .accessibilityHint("Marks this note as pinned")
                 }
             }
-            .navigationTitle("New Note")
+            .navigationTitle(mode == .create ? "New Note" : "Edit Note")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -42,31 +62,31 @@ struct NoteEditorView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-                        let finalTitle = trimmedTitle.isEmpty ? "Untitled Note" : trimmedTitle
-                        
-                        let newNote = Note(
-                            id: UUID(),
-                            title: finalTitle,
-                            content: content,
-                            createdAt: .now,
-                            updatedAt: .now,
-                            isPinned: isPinned
-                        )
-                        
-                        onSave(newNote)
+                    Button(mode == .create ? "Save" : "Done") {
+                        onSave(title, content, isPinned)
                         dismiss()
                     }
                     .tint(.blue)
-                    .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    .accessibilityHint("Saves the note and returns to the notes list")
+                    .disabled(isSaveDisabled)
+                    .accessibilityHint(
+                        mode == .create
+                        ? "Saves the note and returns to the notes list"
+                        : "Saves your changes and returns to the note"
+                    )
                 }
             }
         }
     }
+    
+    private var isSaveDisabled: Bool {
+        title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 }
 
-#Preview {
-    NoteEditorView { _ in }
+#Preview("Create") {
+    NoteEditorView(title: "", content: "", isPinned: false, mode: .create) { _, _, _ in }
+}
+
+#Preview("Edit") {
+    NoteEditorView(title: "Test", content: "Exisiting note", isPinned: true, mode: .edit) { _, _, _ in }
 }

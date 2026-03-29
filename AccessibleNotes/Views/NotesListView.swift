@@ -31,8 +31,12 @@ struct NotesListView: View {
     
     var body: some View {
         NavigationStack {
-            List(notes) { note in
-                NoteRowView(note: note)
+            List($notes) { $note in
+                NavigationLink {
+                    NoteDetailView(note: $note)
+                } label: {
+                    NoteRowView(note: note)
+                }
             }
             .navigationTitle("Notes")
             .toolbar {
@@ -47,7 +51,24 @@ struct NotesListView: View {
                 }
             }
             .sheet(isPresented: $isShowingNewNoteSheet) {
-                NoteEditorView { newNote in
+                NoteEditorView(
+                    title: "",
+                    content: "",
+                    isPinned: false,
+                    mode: .create
+                ) { title, content, isPinned in
+                    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let finalTitle = trimmedTitle.isEmpty ? "Untitled Note" : trimmedTitle
+                    
+                    let newNote = Note(
+                        id: UUID(),
+                        title: finalTitle,
+                        content: content,
+                        createdAt: .now,
+                        updatedAt: .now,
+                        isPinned: isPinned
+                    )
+                    
                     notes.insert(newNote, at: 0)
                 }
             }
