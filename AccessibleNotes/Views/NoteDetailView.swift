@@ -11,6 +11,8 @@ struct NoteDetailView : View {
     @Binding var note: Note
     @State private var isShowingEditSheet: Bool = false
     
+    let onSaveEdits: (String, String, Bool) -> Void
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -56,11 +58,7 @@ struct NoteDetailView : View {
                 isPinned: note.isPinned,
                 mode: .edit
             ) { updateTitle, updatedContent, updatedPinned in
-                let trimmedTitle = updateTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-                note.title = trimmedTitle.isEmpty ? "Untitled Note" : trimmedTitle
-                note.content = updatedContent
-                note.isPinned = updatedPinned
-                note.updatedAt = .now
+                onSaveEdits(updateTitle, updatedContent, updatedPinned)
             }
         }
     }

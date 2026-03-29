@@ -8,41 +8,23 @@
 import SwiftUI
 
 struct NotesListView: View {
-    @State private var notes: [Note] = [
-        Note(
-            id: UUID(),
-            title: "Grocery List",
-            content: "Buy milk, eggs, and bread.",
-            createdAt: .now,
-            updatedAt: .now,
-            isPinned: true
-        ),
-        Note(
-            id: UUID(),
-            title: "Meeting Notes",
-            content: "Discuss accessibility features",
-            createdAt: .now,
-            updatedAt: .now,
-            isPinned: false
-        )
-    ]
+    @StateObject private var viewModel: NotesViewModel = NotesViewModel()
     
     @State private var isShowingNewNoteSheet: Bool = false
     @State private var noteToDelete: Note? = nil
     @State private var isShowingDeleteConfirmation: Bool = false
-    @State private var searchText: String = ""
     
     var body: some View {
         NavigationStack {
             Group {
-                if filteredNotes.isEmpty {
+                if viewModel.filteredNotes.isEmpty {
                     emptyStateView
                 } else {
                     notesListView
                 }
             }
             .navigationTitle("Notes")
-            .searchable(text: $searchText, prompt: "Search Notes")
+            .searchable(text: $viewModel.searchText, prompt: "Search Notes")
             .toolbar {
                 addNoteButton
             }
@@ -74,16 +56,18 @@ struct NotesListView: View {
     
     private var notesListView: some View {
         List {
-            ForEach(filteredNotes) { note in
-                if let index = indexForNote(note) {
+            ForEach(viewModel.filteredNotes) { note in
+                if let index = viewModel.indexForNote(note) {
                     NavigationLink {
-                        NoteDetailView(note: $notes[index])
+                        NoteDetailView(note: $viewModel.notes[index]) { title, content, isPinned in
+                            viewModel.updateNote(id: note.id, title: title, content: content, isPinned: isPinned)
+                        }
                     } label: {
-                        NoteRowView(note: notes[index])
+                        NoteRowView(note: viewModel.notes[index])
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button {
-                            promptDelete(for: notes[index])
+                            promptDelete(for: viewModel.notes[index])
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -121,44 +105,12 @@ struct NotesListView: View {
             isPinned: false,
             mode: .create
         ) { title, content, isPinned in
-            createNote(title: title, content: content, isPinned: isPinned)
+            viewModel.createNote(title: title, content: content, isPinned: isPinned)
         }
     }
     
     private var deleteDialogTitle: String {
         return "Delete \(noteToDelete?.title ?? "this note") note?"
-    }
-    
-    private func indexForNote(_ note: Note) -> Int? {
-        return notes.firstIndex(where: { $0.id == note.id })
-    }
-    
-    private var filteredNotes: [Note] {
-        let finalSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        if finalSearchText.isEmpty {
-            return notes
-        }
-        
-        return notes.filter { note in
-            note.title.localizedCaseInsensitiveContains(finalSearchText) || note.content.localizedCaseInsensitiveContains(finalSearchText)
-        }
-    }
-    
-    private func createNote(title: String, content: String, isPinned: Bool) {
-        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        let finalTitle = trimmedTitle.isEmpty ? "Untitled Note" : trimmedTitle
-        
-        let newNote = Note(
-            id: UUID(),
-            title: finalTitle,
-            content: content,
-            createdAt: .now,
-            updatedAt: .now,
-            isPinned: isPinned
-        )
-        
-        notes.insert(newNote, at: 0)
     }
     
     private func promptDelete(for note: Note) {
@@ -168,7 +120,7 @@ struct NotesListView: View {
     
     private func deleteSelectedNote() {
         guard let selectedNote = noteToDelete else { return }
-        notes.removeAll(where: { $0.id == selectedNote.id })
+        viewModel.deleteNote(selectedNote)
         noteToDelete = nil
     }
 }
