@@ -28,6 +28,8 @@ struct NotesListView: View {
     ]
     
     @State private var isShowingNewNoteSheet: Bool = false
+    @State private var noteToDelete: Note? = nil
+    @State private var isShowingDeleteConfirmation: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -36,6 +38,15 @@ struct NotesListView: View {
                     NoteDetailView(note: $note)
                 } label: {
                     NoteRowView(note: note)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button {
+                        noteToDelete = note
+                        isShowingDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    .tint(.red)
                 }
             }
             .navigationTitle("Notes")
@@ -72,7 +83,33 @@ struct NotesListView: View {
                     notes.insert(newNote, at: 0)
                 }
             }
+            .confirmationDialog(
+                "Delete \(noteToDelete?.title ?? "this note") note?",
+                isPresented: $isShowingDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    deleteSelectedNote()
+                }
+
+                Button("Cancel", role: .cancel) {
+                    noteToDelete = nil
+                }
+            } message: {
+                Text("This action cannot be undone.")
+            }
+            .onChange(of: isShowingDeleteConfirmation) { oldValue, newValue in
+                if oldValue != newValue, newValue == false {
+                    noteToDelete = nil
+                }
+            }
         }
+    }
+    
+    private func deleteSelectedNote() {
+        guard let selectedNote = noteToDelete else { return }
+        notes.removeAll(where: { $0.id == selectedNote.id })
+        noteToDelete = nil
     }
 }
 
