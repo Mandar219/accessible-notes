@@ -30,26 +30,42 @@ struct NotesListView: View {
     @State private var isShowingNewNoteSheet: Bool = false
     @State private var noteToDelete: Note? = nil
     @State private var isShowingDeleteConfirmation: Bool = false
+    @State private var searchText: String = ""
     
     var body: some View {
         NavigationStack {
-            List($notes) { $note in
-                NavigationLink {
-                    NoteDetailView(note: $note)
-                } label: {
-                    NoteRowView(note: note)
-                }
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button {
-                        noteToDelete = note
-                        isShowingDeleteConfirmation = true
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+            Group {
+                if filteredNotes.isEmpty {
+                    ContentUnavailableView(
+                        "No Notes Found",
+                        systemImage: "magnifyingglass",
+                        description: Text("Try searching for a different note or creating a new one.")
+                    )
+                } else {
+                    List {
+                        ForEach(filteredNotes) { note in
+                            if let index = notes.firstIndex(where: { $0.id == note.id }) {
+                                NavigationLink {
+                                    NoteDetailView(note: $notes[index])
+                                } label: {
+                                    NoteRowView(note: notes[index])
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button {
+                                        noteToDelete = notes[index]
+                                        isShowingDeleteConfirmation = true
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                }
+                            }
+                        }
                     }
-                    .tint(.red)
                 }
             }
             .navigationTitle("Notes")
+            .searchable(text: $searchText, prompt: "Search Notes")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -103,6 +119,18 @@ struct NotesListView: View {
                     noteToDelete = nil
                 }
             }
+        }
+    }
+    
+    private var filteredNotes: [Note] {
+        let finalSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if finalSearchText.isEmpty {
+            return notes
+        }
+        
+        return notes.filter { note in
+            note.title.localizedCaseInsensitiveContains(finalSearchText) || note.content.localizedCaseInsensitiveContains(finalSearchText)
         }
     }
     
