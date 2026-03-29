@@ -36,71 +36,21 @@ struct NotesListView: View {
         NavigationStack {
             Group {
                 if filteredNotes.isEmpty {
-                    ContentUnavailableView(
-                        "No Notes Found",
-                        systemImage: "magnifyingglass",
-                        description: Text("Try searching for a different note or creating a new one.")
-                    )
+                    emptyStateView
                 } else {
-                    List {
-                        ForEach(filteredNotes) { note in
-                            if let index = notes.firstIndex(where: { $0.id == note.id }) {
-                                NavigationLink {
-                                    NoteDetailView(note: $notes[index])
-                                } label: {
-                                    NoteRowView(note: notes[index])
-                                }
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button {
-                                        noteToDelete = notes[index]
-                                        isShowingDeleteConfirmation = true
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                    .tint(.red)
-                                }
-                            }
-                        }
-                    }
+                    notesListView
                 }
             }
             .navigationTitle("Notes")
             .searchable(text: $searchText, prompt: "Search Notes")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        isShowingNewNoteSheet = true
-                    } label: {
-                        Label("New Note", systemImage: "plus")
-                    }
-                    .accessibilityLabel("Create a new note")
-                    .accessibilityHint("Opens the note editor")
-                }
+                addNoteButton
             }
             .sheet(isPresented: $isShowingNewNoteSheet) {
-                NoteEditorView(
-                    title: "",
-                    content: "",
-                    isPinned: false,
-                    mode: .create
-                ) { title, content, isPinned in
-                    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-                    let finalTitle = trimmedTitle.isEmpty ? "Untitled Note" : trimmedTitle
-                    
-                    let newNote = Note(
-                        id: UUID(),
-                        title: finalTitle,
-                        content: content,
-                        createdAt: .now,
-                        updatedAt: .now,
-                        isPinned: isPinned
-                    )
-                    
-                    notes.insert(newNote, at: 0)
-                }
+                newNoteEditorSheet
             }
             .confirmationDialog(
-                "Delete \(noteToDelete?.title ?? "this note") note?",
+                deleteDialogTitle,
                 isPresented: $isShowingDeleteConfirmation,
                 titleVisibility: .visible
             ) {
@@ -122,6 +72,67 @@ struct NotesListView: View {
         }
     }
     
+    private var notesListView: some View {
+        List {
+            ForEach(filteredNotes) { note in
+                if let index = indexForNote(note) {
+                    NavigationLink {
+                        NoteDetailView(note: $notes[index])
+                    } label: {
+                        NoteRowView(note: notes[index])
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button {
+                            promptDelete(for: notes[index])
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                        .tint(.red)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var emptyStateView: some View {
+        ContentUnavailableView(
+            "No Notes Found",
+            systemImage: "magnifyingglass",
+            description: Text("Try searching for a different note or creating a new one.")
+        )
+    }
+    
+    @ToolbarContentBuilder private var addNoteButton: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isShowingNewNoteSheet = true
+            } label: {
+                Label("New Note", systemImage: "plus")
+            }
+            .accessibilityLabel("Create a new note")
+            .accessibilityHint("Opens the note editor")
+        }
+    }
+    
+    private var newNoteEditorSheet: some View {
+        NoteEditorView(
+            title: "",
+            content: "",
+            isPinned: false,
+            mode: .create
+        ) { title, content, isPinned in
+            createNote(title: title, content: content, isPinned: isPinned)
+        }
+    }
+    
+    private var deleteDialogTitle: String {
+        return "Delete \(noteToDelete?.title ?? "this note") note?"
+    }
+    
+    private func indexForNote(_ note: Note) -> Int? {
+        return notes.firstIndex(where: { $0.id == note.id })
+    }
+    
     private var filteredNotes: [Note] {
         let finalSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -132,6 +143,27 @@ struct NotesListView: View {
         return notes.filter { note in
             note.title.localizedCaseInsensitiveContains(finalSearchText) || note.content.localizedCaseInsensitiveContains(finalSearchText)
         }
+    }
+    
+    private func createNote(title: String, content: String, isPinned: Bool) {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalTitle = trimmedTitle.isEmpty ? "Untitled Note" : trimmedTitle
+        
+        let newNote = Note(
+            id: UUID(),
+            title: finalTitle,
+            content: content,
+            createdAt: .now,
+            updatedAt: .now,
+            isPinned: isPinned
+        )
+        
+        notes.insert(newNote, at: 0)
+    }
+    
+    private func promptDelete(for note: Note) {
+        noteToDelete = note
+        isShowingDeleteConfirmation = true
     }
     
     private func deleteSelectedNote() {
