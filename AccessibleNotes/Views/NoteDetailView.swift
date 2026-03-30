@@ -10,8 +10,12 @@ import SwiftUI
 struct NoteDetailView : View {
     @Binding var note: Note
     @State private var isShowingEditSheet: Bool = false
+    @State private var isShowingDeleteConfirmation: Bool = false
+    @Environment(\.dismiss) private var dismiss
     
-    let onSaveEdits: (String, String, Bool) -> Void
+    let onSaveEdits: (String, String) -> Void
+    let onDelete: () -> Void
+    let onTogglePin: () -> Void
     
     var body: some View {
         ScrollView {
@@ -21,12 +25,6 @@ struct NoteDetailView : View {
                         .font(.title)
                         .fontWeight(.semibold)
                         .accessibilityAddTraits(.isHeader)
-                    
-                    if note.isPinned {
-                        Image(systemName: "pin.fill")
-                            .foregroundColor(.blue)
-                            .accessibilityLabel("Pinned")
-                    }
                 }
                 
                 Text("Last updated \(note.updatedAt.formatted(date: .abbreviated, time: .shortened))")
@@ -50,16 +48,46 @@ struct NoteDetailView : View {
                 }
                 .accessibilityHint("Opens the note editor")
             }
+            
+            ToolbarItemGroup(placement: .bottomBar) {
+                Button {
+                    isShowingDeleteConfirmation = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+                .tint(.red)
+                
+                Spacer()
+                
+                Button {
+                    onTogglePin()
+                } label: {
+                    Label(note.isPinned ? "Unpin" : "Pin", systemImage: note.isPinned ? "pin.fill" : "pin")
+                }
+                .tint(note.isPinned ? .blue : nil)
+                .accessibilityHint(note.isPinned ? "Removes this note from pinned notes" : "Pins this note")
+            }
         }
         .sheet(isPresented: $isShowingEditSheet) {
             NoteEditorView(
                 title: note.title,
                 content: note.content,
-                isPinned: note.isPinned,
                 mode: .edit
-            ) { updateTitle, updatedContent, updatedPinned in
-                onSaveEdits(updateTitle, updatedContent, updatedPinned)
+            ) { updateTitle, updatedContent in
+                onSaveEdits(updateTitle, updatedContent)
             }
+        }
+        .confirmationDialog(
+            "Delete \"\(note.title)\"?",
+            isPresented: $isShowingDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) {
+                onDelete()
+                dismiss()
+            }
+        } message: {
+            Text("This action cannot be undone.")
         }
     }
 }

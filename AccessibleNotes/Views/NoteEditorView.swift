@@ -17,21 +17,18 @@ struct NoteEditorView: View {
     
     @State private var title: String = ""
     @State private var content: String = ""
-    @State private var isPinned: Bool = false
     
     let mode: Mode
-    let onSave: (String, String, Bool) -> Void
+    let onSave: (String, String) -> Void
     
     init(
         title: String,
         content: String,
-        isPinned: Bool,
         mode: Mode,
-        onSave: @escaping (String, String, Bool) -> Void
+        onSave: @escaping (String, String) -> Void
     ) {
         _title = State(initialValue: title)
         _content = State(initialValue: content)
-        _isPinned = State(initialValue: isPinned)
         self.mode = mode
         self.onSave = onSave
     }
@@ -48,9 +45,6 @@ struct NoteEditorView: View {
                         .frame(minHeight: 200)
                         .accessibilityLabel("Content")
                         .accessibilityHint("Enter the content of your note")
-                    
-                    Toggle("Pinned", isOn: $isPinned)
-                        .accessibilityHint("Marks this note as pinned")
                 }
             }
             .navigationTitle(mode == .create ? "New Note" : "Edit Note")
@@ -63,7 +57,7 @@ struct NoteEditorView: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button(mode == .create ? "Save" : "Done") {
-                        onSave(title, content, isPinned)
+                        onSave(title, content)
                         dismiss()
                     }
                     .tint(.blue)
@@ -84,9 +78,9 @@ struct NoteEditorView: View {
 }
 
 #Preview("Create") {
-    NoteEditorView(title: "", content: "", isPinned: false, mode: .create) { _, _, _ in }
+    NoteEditorView(title: "", content: "", mode: .create) { _, _ in }
 }
 
 #Preview("Edit") {
-    NoteEditorView(title: "Test", content: "Exisiting note", isPinned: true, mode: .edit) { _, _, _ in }
+    NoteEditorView(title: "Test", content: "Exisiting note", mode: .edit) { _, _ in }
 }

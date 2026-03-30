@@ -9,26 +9,14 @@ import Foundation
 import Combine
 
 final class NotesViewModel: ObservableObject {
-    @Published var notes: [Note] = [
-        Note(
-            id: UUID(),
-            title: "Grocery List",
-            content: "Buy milk, eggs, bread",
-            createdAt: .now,
-            updatedAt: .now,
-            isPinned: true
-        ),
-        Note(
-            id: UUID(),
-            title: "Meeting Notes",
-            content: "Discuss accessibility features",
-            createdAt: .now,
-            updatedAt: .now,
-            isPinned: false
-        )
-    ]
-    
+    @Published var notes: [Note] = []
     @Published var searchText = ""
+    
+    private let storageService: StorageService = StorageService()
+    
+    init () {
+        loadNotes()
+    }
     
     var filteredNotes: [Note] {
         let finalSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -42,7 +30,7 @@ final class NotesViewModel: ObservableObject {
         }
     }
     
-    func createNote(title: String, content: String, isPinned: Bool) {
+    func createNote(title: String, content: String) {
         let finalTitle = getFinalTitle(title)
         
         let newNote = Note(
@@ -51,7 +39,7 @@ final class NotesViewModel: ObservableObject {
             content: content,
             createdAt: .now,
             updatedAt: .now,
-            isPinned: isPinned
+            isPinned: false
         )
         
         notes.insert(newNote, at: 0)
@@ -61,14 +49,13 @@ final class NotesViewModel: ObservableObject {
         notes.removeAll(where: { $0.id == note.id })
     }
 
-    func updateNote(id: UUID, title: String, content: String, isPinned: Bool) {
+    func updateNote(id: UUID, title: String, content: String) {
         guard let index = notes.firstIndex(where: { $0.id == id }) else { return }
 
         let finalTitle = getFinalTitle(title)
 
         notes[index].title = finalTitle
         notes[index].content = content
-        notes[index].isPinned = isPinned
         notes[index].updatedAt = .now
     }
 
@@ -76,8 +63,48 @@ final class NotesViewModel: ObservableObject {
         notes.firstIndex { $0.id == note.id }
     }
     
+    func togglePin(for note: Note) {
+        guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
+        
+        notes[index].isPinned.toggle()
+        notes[index].updatedAt = .now
+        saveNotes()
+    }
+    
     private func getFinalTitle(_ title: String) -> String {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmedTitle.isEmpty ? "Untitled Note" : trimmedTitle
+    }
+    
+    private func saveNotes() {
+        storageService.saveNotes(notes)
+    }
+    
+    private func loadNotes() {
+        let loadedNotes = storageService.loadNotes()
+        
+        if loadedNotes.isEmpty {
+            notes = [
+                Note(
+                    id: UUID(),
+                    title: "Grocery List",
+                    content: "Buy milk, eggs, bread",
+                    createdAt: .now,
+                    updatedAt: .now,
+                    isPinned: true
+                ),
+                Note(
+                    id: UUID(),
+                    title: "Meeting Notes",
+                    content: "Discuss accessibility features",
+                    createdAt: .now,
+                    updatedAt: .now,
+                    isPinned: false
+                )
+            ]
+            saveNotes()
+        } else {
+            notes = loadedNotes
+        }
     }
 }

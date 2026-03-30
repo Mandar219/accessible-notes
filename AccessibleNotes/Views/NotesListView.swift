@@ -59,9 +59,18 @@ struct NotesListView: View {
             ForEach(viewModel.filteredNotes) { note in
                 if let index = viewModel.indexForNote(note) {
                     NavigationLink {
-                        NoteDetailView(note: $viewModel.notes[index]) { title, content, isPinned in
-                            viewModel.updateNote(id: note.id, title: title, content: content, isPinned: isPinned)
-                        }
+                        NoteDetailView(
+                            note: $viewModel.notes[index],
+                            onSaveEdits: { title, content in
+                                viewModel.updateNote(id: note.id, title: title, content: content)
+                            },
+                            onDelete: {
+                                viewModel.deleteNote(note)
+                            },
+                            onTogglePin: {
+                                viewModel.togglePin(for: note)
+                            }
+                        )
                     } label: {
                         NoteRowView(note: viewModel.notes[index])
                     }
@@ -102,10 +111,9 @@ struct NotesListView: View {
         NoteEditorView(
             title: "",
             content: "",
-            isPinned: false,
             mode: .create
-        ) { title, content, isPinned in
-            viewModel.createNote(title: title, content: content, isPinned: isPinned)
+        ) { title, content in
+            viewModel.createNote(title: title, content: content)
         }
     }
     
