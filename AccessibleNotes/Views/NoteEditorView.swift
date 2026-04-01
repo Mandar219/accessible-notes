@@ -1,10 +1,3 @@
-//
-//  NoteEditorView.swift
-//  AccessibleNotes
-//
-//  Created by Mandar Gondane on 3/27/26.
-//
-
 import SwiftUI
 
 struct NoteEditorView: View {
@@ -39,6 +32,7 @@ struct NoteEditorView: View {
                 Section("Note Details") {
                     TextField("Title", text: $title)
                         .accessibilityLabel("Title")
+                        .accessibilityValue(title.isEmpty ? "Untitled" : title)
                         .accessibilityHint("Enter the title of your Note")
                     
                     TextEditor(text: $content)
@@ -46,6 +40,7 @@ struct NoteEditorView: View {
                         .accessibilityLabel("Content")
                         .accessibilityHint("Enter the content of your note")
                 }
+                .foregroundStyle(.primary.opacity(0.7))
             }
             .navigationTitle(mode == .create ? "New Note" : "Edit Note")
             .toolbar {

@@ -1,10 +1,3 @@
-//
-//  NoteRowView.swift
-//  AccessibleNotes
-//
-//  Created by Mandar Gondane on 3/27/26.
-//
-
 import SwiftUI
 
 struct NoteRowView: View {
@@ -23,16 +16,28 @@ struct NoteRowView: View {
                 }
             }
             
-            Text(note.content)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
+            if !note.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(note.content)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                    .opacity(0.8)
+                    .lineLimit(2)
+            }
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(note.title)
-        .accessibilityValue(note.isPinned ? "Pinned" : "Not pinned")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibiltyRowLabel)
         .accessibilityHint("Open note details")
+    }
+    
+    private var accessibiltyRowLabel: String {
+        var parts: [String] = [note.title]
+        
+        if note.isPinned {
+            parts.append("Pinned")
+        }
+        
+        return parts.joined(separator: ", ")
     }
 }
 
@@ -41,10 +46,10 @@ struct NoteRowView: View {
         note: Note(
             id: UUID(),
             title: "Sample Note",
-            content: "This is a preview note.",
+            content: "This is a sample",
             createdAt: .now,
             updatedAt: .now,
-            isPinned: false
+            isPinned: true
         )
     )
 }

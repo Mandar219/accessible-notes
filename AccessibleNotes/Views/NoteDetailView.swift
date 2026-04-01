@@ -1,10 +1,3 @@
-//
-//  NoteDetailView.swift
-//  AccessibleNotes
-//
-//  Created by Mandar Gondane on 3/28/26.
-//
-
 import SwiftUI
 
 struct NoteDetailView : View {
@@ -25,17 +18,27 @@ struct NoteDetailView : View {
                         .font(.title)
                         .fontWeight(.semibold)
                         .accessibilityAddTraits(.isHeader)
+                        .accessibilityLabel("Note title")
+                        .accessibilityValue(note.title)
+                        
                 }
                 
                 Text("Last updated \(note.updatedAt.formatted(date: .abbreviated, time: .shortened))")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
+                    .opacity(0.7)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityLabel("Last updated \(note.updatedAt.formatted(date: .complete, time: .shortened))")
                 
                 Divider()
+                    .overlay(Color.primary.opacity(0.4))
                 
                 Text(note.content.isEmpty ? "No content" : note.content)
                     .font(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityLabel("Content")
+                    .accessibilityValue(note.content.isEmpty ? "No content" : note.content)
             }
             .padding()
         }
@@ -48,25 +51,39 @@ struct NoteDetailView : View {
                 }
                 .accessibilityHint("Opens the note editor")
             }
-            
-            ToolbarItemGroup(placement: .bottomBar) {
+        }
+        .safeAreaInset(edge: .bottom) {
+            HStack {
                 Button {
                     isShowingDeleteConfirmation = true
                 } label: {
                     Label("Delete", systemImage: "trash")
+                        .frame(maxWidth: .infinity)
                 }
-                .tint(.red)
+                .tint(Color(.systemRed))
+                .accessibilityHint("Asks you to confirm deletion of the note")
                 
                 Spacer()
                 
                 Button {
+                    let wasPinned = note.isPinned
                     onTogglePin()
+                    AccessibilityService.announce(wasPinned ? "Note unpinned" : "Note pinned")
                 } label: {
                     Label(note.isPinned ? "Unpin" : "Pin", systemImage: note.isPinned ? "pin.fill" : "pin")
+                        .frame(maxWidth: .infinity)
                 }
-                .tint(note.isPinned ? .blue : nil)
+                .tint(note.isPinned ? Color(.systemBlue) : nil)
                 .accessibilityHint(note.isPinned ? "Removes this note from pinned notes" : "Pins this note")
             }
+            .padding()
+            .background(.ultraThinMaterial)
+            .overlay(
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundStyle(.primary.opacity(0.5)),
+                alignment: .top
+            )
         }
         .sheet(isPresented: $isShowingEditSheet) {
             NoteEditorView(
@@ -91,3 +108,4 @@ struct NoteDetailView : View {
         }
     }
 }
+

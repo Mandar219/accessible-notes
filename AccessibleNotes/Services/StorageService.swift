@@ -1,10 +1,3 @@
-//
-//  StorageService.swift
-//  AccessibleNotes
-//
-//  Created by Mandar Gondane on 3/29/26.
-//
-
 import Foundation
 
 struct StorageService {

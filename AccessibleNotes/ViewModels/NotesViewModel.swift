@@ -1,10 +1,3 @@
-//
-//  NotesViewModel.swift
-//  AccessibleNotes
-//
-//  Created by Mandar Gondane on 3/29/26.
-//
-
 import Foundation
 import Combine
 
@@ -20,13 +13,22 @@ final class NotesViewModel: ObservableObject {
     
     var filteredNotes: [Note] {
         let finalSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let baseNotes: [Note]
         
-        guard !finalSearchText.isEmpty else {
-            return notes
+        if finalSearchText.isEmpty {
+            baseNotes = notes
+        } else {
+            baseNotes = notes.filter { note in
+                note.title.localizedCaseInsensitiveContains(finalSearchText) || note.content.localizedCaseInsensitiveContains(finalSearchText)
+            }
         }
         
-        return notes.filter { note in
-            note.title.localizedCaseInsensitiveContains(finalSearchText) || note.content.localizedCaseInsensitiveContains(finalSearchText)
+        return baseNotes.sorted { lhs, rhs in
+            if lhs.isPinned != rhs.isPinned {
+                return lhs.isPinned && !rhs.isPinned
+            }
+            
+            return lhs.updatedAt > rhs.updatedAt
         }
     }
     
@@ -81,30 +83,6 @@ final class NotesViewModel: ObservableObject {
     }
     
     private func loadNotes() {
-        let loadedNotes = storageService.loadNotes()
-        
-        if loadedNotes.isEmpty {
-            notes = [
-                Note(
-                    id: UUID(),
-                    title: "Grocery List",
-                    content: "Buy milk, eggs, bread",
-                    createdAt: .now,
-                    updatedAt: .now,
-                    isPinned: true
-                ),
-                Note(
-                    id: UUID(),
-                    title: "Meeting Notes",
-                    content: "Discuss accessibility features",
-                    createdAt: .now,
-                    updatedAt: .now,
-                    isPinned: false
-                )
-            ]
-            saveNotes()
-        } else {
-            notes = loadedNotes
-        }
+        notes = storageService.loadNotes()
     }
 }

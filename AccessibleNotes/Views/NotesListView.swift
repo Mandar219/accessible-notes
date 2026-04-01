@@ -1,10 +1,3 @@
-//
-//  NotesListView.swift
-//  AccessibleNotes
-//
-//  Created by Mandar Gondane on 3/27/26.
-//
-
 import SwiftUI
 
 struct NotesListView: View {
@@ -75,12 +68,14 @@ struct NotesListView: View {
                         NoteRowView(note: viewModel.notes[index])
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button {
-                            promptDelete(for: viewModel.notes[index])
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        .tint(.red)
+                            Button {
+                                promptDelete(for: viewModel.notes[index])
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            .tint(.red)
+                            .accessibilityLabel("Delete")
+                            .accessibilityHint("Asks you to confirm deletion of the note")
                     }
                 }
             }
@@ -114,6 +109,7 @@ struct NotesListView: View {
             mode: .create
         ) { title, content in
             viewModel.createNote(title: title, content: content)
+            AccessibilityService.announce("Note saved")
         }
     }
     
@@ -130,6 +126,7 @@ struct NotesListView: View {
         guard let selectedNote = noteToDelete else { return }
         viewModel.deleteNote(selectedNote)
         noteToDelete = nil
+        AccessibilityService.announce("Note deleted")
     }
 }
 
