@@ -63,15 +63,15 @@ This project was intentionally designed with accessibility in mind from the begi
 
 |  |  |
 | :---: | :---: |
-| ![](Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.05.25.png) | ![](Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.06.36.png) |
+| ![](AccessibleNotes/Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.05.25.png) | ![](AccessibleNotes/Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.06.36.png) |
 
 | | |
 | :---: | :---: |
-| ![](Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.07.47.png) | ![](Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.07.55.png) |
+| ![](AccessibleNotes/Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.07.47.png) | ![](AccessibleNotes/Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.07.55.png) |
 
 | | |
 | :---: | :---: |
-| ![](Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.06.43.png) | ![](Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.17.33.png) |
+| ![](AccessibleNotes/Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.06.43.png) | ![](AccessibleNotes/Screenshots/Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-03-31%20at%2021.17.33.png) |
 
 
 ------------------------------------------------------------------------
