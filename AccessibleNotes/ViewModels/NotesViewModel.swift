@@ -45,10 +45,12 @@ final class NotesViewModel: ObservableObject {
         )
         
         notes.insert(newNote, at: 0)
+        saveNotes()
     }
     
     func deleteNote(_ note: Note) {
         notes.removeAll(where: { $0.id == note.id })
+        saveNotes()
     }
 
     func updateNote(id: UUID, title: String, content: String) {
@@ -59,6 +61,7 @@ final class NotesViewModel: ObservableObject {
         notes[index].title = finalTitle
         notes[index].content = content
         notes[index].updatedAt = .now
+        saveNotes()
     }
 
     func indexForNote(_ note: Note) -> Int? {
